@@ -85,4 +85,4 @@ If you want to run a specific server and benchmark manually:
 
 ## License
 
-MIT
+[MIT](/LICENSE)
