@@ -1,0 +1,15 @@
+{
+  "name": "@bench/server-bun-socketio-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.ts"
+  },
+  "dependencies": {
+    "@socket.io/bun-engine": "^0.1.0",
+    "socket.io": "^4.8.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.11"
+  }
+}

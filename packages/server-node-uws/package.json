@@ -1,0 +1,14 @@
+{
+  "name": "@bench/server-node-uws",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.60.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

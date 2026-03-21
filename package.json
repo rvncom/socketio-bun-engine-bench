@@ -1,0 +1,18 @@
+{
+  "name": "socket-bun-engine-bench-monorepo",
+  "private": true,
+  "scripts": {
+    "bench": "pnpm --filter @bench/client run start",
+    "bench:all": "pnpm --filter @bench/client run bench:all",
+    "bench:test": "pnpm --filter @bench/client run test-report",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "lint": "oxlint --ignore-path .gitignore ."
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "oxlint": "^1.56.0",
+    "prettier": "^3.8.1"
+  },
+  "packageManager": "pnpm@10.32.1"
+}

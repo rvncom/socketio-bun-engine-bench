@@ -1,0 +1,14 @@
+{
+  "name": "@bench/server-node-ws",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
