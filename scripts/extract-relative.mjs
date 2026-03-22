@@ -29,7 +29,11 @@ function fmt(n) {
 }
 
 function fmtMs(n) {
-  return n < 1 ? n.toFixed(2) : n < 10 ? n.toFixed(1) : Math.round(n).toString();
+  return n < 1
+    ? n.toFixed(2)
+    : n < 10
+      ? n.toFixed(1)
+      : Math.round(n).toString();
 }
 
 function ratioLabel(ratio, higherIsBetter) {
@@ -47,7 +51,9 @@ function ratioLabel(ratio, higherIsBetter) {
 const opts = parseArgs(process.argv.slice(2));
 
 if (!opts.input) {
-  console.error("Usage: --input <file> --version <ver> --report-url <url> --output-markdown <file> --output-json <file>");
+  console.error(
+    "Usage: --input <file> --version <ver> --report-url <url> --output-markdown <file> --output-json <file>",
+  );
   process.exit(1);
 }
 
@@ -80,9 +86,18 @@ const metrics = {
 };
 
 const ratios = {
-  throughput: metrics.throughput.upstream > 0 ? metrics.throughput.ours / metrics.throughput.upstream : 0,
-  connections: metrics.connections.upstream > 0 ? metrics.connections.ours / metrics.connections.upstream : 0,
-  latencyP95: metrics.latencyP95.upstream > 0 ? metrics.latencyP95.ours / metrics.latencyP95.upstream : 0,
+  throughput:
+    metrics.throughput.upstream > 0
+      ? metrics.throughput.ours / metrics.throughput.upstream
+      : 0,
+  connections:
+    metrics.connections.upstream > 0
+      ? metrics.connections.ours / metrics.connections.upstream
+      : 0,
+  latencyP95:
+    metrics.latencyP95.upstream > 0
+      ? metrics.latencyP95.ours / metrics.latencyP95.upstream
+      : 0,
 };
 
 // Generate markdown
@@ -122,7 +137,10 @@ const jsonOutput = {
 };
 
 if (opts["output-json"]) {
-  writeFileSync(opts["output-json"], JSON.stringify(jsonOutput, null, 2) + "\n");
+  writeFileSync(
+    opts["output-json"],
+    JSON.stringify(jsonOutput, null, 2) + "\n",
+  );
   console.log(`Wrote ${opts["output-json"]}`);
 }
 

@@ -312,13 +312,30 @@ export function generateHtmlReport(
             const metric = document.getElementById('metricSelector').value;
             const yLabels = { connections: 'TOTAL CONNECTIONS', throughput: 'MESSAGES / SEC', latency: 'LATENCY (MS)' };
 
-            const datasets = rawResults.map((r, idx) => {
+            // First pass: find global max time to align all lines
+            let globalMaxTime = 0;
+            rawResults.forEach(r => {
+                const ts = (r[metric] && r[metric].timeSeries) || [];
+                if (ts.length > 0) {
+                    const minTime = ts[0].timestamp / 1000;
+                    const maxTime = ts[ts.length - 1].timestamp / 1000 - minTime;
+                    if (maxTime > globalMaxTime) globalMaxTime = maxTime;
+                }
+            });
+
+            let datasets = rawResults.map((r, idx) => {
                 const section = r[metric];
                 const ts = (section && section.timeSeries) || [];
                 if (ts.length === 0) return null;
 
                 // Extract points — use the metric key from each timeSeries point
                 let points = ts.map(p => ({ x: p.timestamp / 1000, y: p[metric] ?? 0 }));
+
+                // Shift time to start from 0 for fair comparison across runtimes
+                if (points.length > 0) {
+                    const minTime = points[0].x;
+                    points = points.map(p => ({ x: p.x - minTime, y: p.y }));
+                }
 
                 // Skip datasets where all values are zero (no real data)
                 if (points.every(p => p.y === 0)) return null;
@@ -331,7 +348,19 @@ export function generateHtmlReport(
                 const win = metric === 'latency' ? 15 : 3;
                 if (points.length > win * 2) points = smooth(points, win);
 
-                // Show point markers when there are very few data points
+                // Normalization fix: find max time for this specific metric
+                const tsMaxTime = Math.max(...points.map(p => p.x));
+                
+                // If this dataset is shorter than the global max, extend it with its last value
+                // but keep the internal tension flat for the extended part
+                if (tsMaxTime < globalMaxTime) {
+                    const lastValue = points[points.length - 1].y;
+                    // Add intermediate points to maintain smooth line without dipping
+                    const step = (globalMaxTime - tsMaxTime) / 5;
+                    for (let i = 1; i <= 5; i++) {
+                         points.push({ x: tsMaxTime + (step * i), y: lastValue });
+                    }
+                }
                 const sparse = points.length <= 5;
 
                 const isRvn = labels[idx] === 'rvn-native';
@@ -383,7 +412,8 @@ export function generateHtmlReport(
                             type: 'linear',
                             title: { display: true, text: 'TIME (SECONDS)', color: '#666', font: { size: 10, weight: 700 } },
                             grid: { color: '#181822' },
-                            ticks: { callback: v => v.toFixed(1) + 's', maxTicksLimit: 15 }
+                            ticks: { callback: v => v.toFixed(1) + 's', maxTicksLimit: 15 },
+                            max: globalMaxTime
                         },
                         y: {
                             beginAtZero: true,

@@ -1,4 +1,3 @@
-import { $ } from "bun";
 import { fileURLToPath } from "url";
 import path from "path";
 import type { BenchmarkResult, ScenarioMeta } from "./types";
@@ -31,7 +30,7 @@ const SERVER_WORKERS =
 const TARGET_CONNECTIONS = process.env.CONNECTIONS || "2000";
 const TARGET_CLIENTS = process.env.CLIENTS || "200";
 const TARGET_MESSAGES = process.env.MESSAGES || "500";
-const TARGET_SAMPLES = process.env.SAMPLES || "100";
+const TARGET_SAMPLES = process.env.SAMPLES || "50";
 
 console.log(`\n--- Socket.IO Benchmark Comparison ---`);
 console.log(`Workers: ${WORKERS} Client / ${SERVER_WORKERS} Server`);
@@ -62,13 +61,6 @@ const SCENARIOS: ScenarioMeta[] = [
     cmd: [NODE_PATH, path.join(PACKAGES_DIR, "server-node-uws", "index.js")],
     cwd: path.join(PACKAGES_DIR, "server-node-uws"),
     color: "rgba(255, 99, 132, 0.7)", // Red
-  },
-  {
-    name: "bun-ws",
-    label: "Bun (ws)",
-    cmd: [BUN_PATH, path.join(PACKAGES_DIR, "server-bun-ws", "index.ts")],
-    cwd: path.join(PACKAGES_DIR, "server-bun-ws"),
-    color: "rgba(255, 206, 86, 0.7)", // Yellow
   },
   {
     name: "bun-socketio-engine",
@@ -267,7 +259,11 @@ async function main() {
     // Ensure port 3000 is free before starting
     if (process.platform === "win32") {
       try {
-        const { stdout } = Bun.spawnSync(["cmd", "/c", "netstat -ano | findstr :3000 | findstr LISTENING"]);
+        const { stdout } = Bun.spawnSync([
+          "cmd",
+          "/c",
+          "netstat -ano | findstr :3000 | findstr LISTENING",
+        ]);
         const line = stdout.toString().trim();
         if (line) {
           const pid = line.split(/\s+/).pop();
@@ -325,7 +321,10 @@ async function main() {
       console.log("  - Benchmarking Connections + Latency (parallel)...");
       const [conn, lat] = await Promise.all([
         runBenchScript("connections.ts", { CONNECTIONS: TARGET_CONNECTIONS }),
-        runBenchScript("latency.ts", { CLIENTS: "20", SAMPLES: TARGET_SAMPLES }),
+        runBenchScript("latency.ts", {
+          CLIENTS: "20",
+          SAMPLES: TARGET_SAMPLES,
+        }),
       ]);
       console.log(`    Connections: ${conn ? `${conn.rate}/sec` : "Failed"}`);
       console.log(`    Latency: ${lat ? `p95: ${lat.p95Ms}ms` : "Failed"}`);
@@ -353,7 +352,11 @@ async function main() {
       if (process.platform === "win32") {
         try {
           // Find PID listening on port 3000
-          const { stdout } = Bun.spawnSync(["cmd", "/c", "netstat -ano | findstr :3000 | findstr LISTENING"]);
+          const { stdout } = Bun.spawnSync([
+            "cmd",
+            "/c",
+            "netstat -ano | findstr :3000 | findstr LISTENING",
+          ]);
           const line = stdout.toString().trim();
           if (line) {
             const pid = line.split(/\s+/).pop();
