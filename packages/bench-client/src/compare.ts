@@ -257,8 +257,8 @@ async function main() {
     console.log(`Starting ${SERVER_WORKERS} server processes...`);
 
     // Ensure port 3000 is free before starting
-    if (process.platform === "win32") {
-      try {
+    try {
+      if (process.platform === "win32") {
         const { stdout } = Bun.spawnSync([
           "cmd",
           "/c",
@@ -273,8 +273,21 @@ async function main() {
             await new Promise((r) => setTimeout(r, 500));
           }
         }
-      } catch {}
-    }
+      } else {
+        // Linux/macOS: kill any process on port 3000
+        const { stdout } = Bun.spawnSync([
+          "sh",
+          "-c",
+          "lsof -ti :3000 2>/dev/null || true",
+        ]);
+        const pids = stdout.toString().trim();
+        if (pids) {
+          console.log(`Port 3000 is busy (PIDs: ${pids}). Killing...`);
+          Bun.spawnSync(["sh", "-c", `kill -9 ${pids} 2>/dev/null || true`]);
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+    } catch {}
 
     // Check if command is valid (e.g. node might not be in path, but usually is)
     try {
@@ -345,13 +358,12 @@ async function main() {
       // 3. Stop Server
       console.log("Stopping servers...");
       for (const proc of serverProcs) {
-        proc.kill();
+        proc.kill(9); // SIGKILL for immediate termination
       }
 
-      // Force kill any remaining processes on port 3000 (Windows)
-      if (process.platform === "win32") {
-        try {
-          // Find PID listening on port 3000
+      // Force kill any remaining processes on port 3000
+      try {
+        if (process.platform === "win32") {
           const { stdout } = Bun.spawnSync([
             "cmd",
             "/c",
@@ -365,9 +377,20 @@ async function main() {
               Bun.spawnSync(["taskkill", "/F", "/PID", pid]);
             }
           }
-        } catch {
-          // ignore
+        } else {
+          const { stdout } = Bun.spawnSync([
+            "sh",
+            "-c",
+            "lsof -ti :3000 2>/dev/null || true",
+          ]);
+          const pids = stdout.toString().trim();
+          if (pids) {
+            console.log(`Force killing remaining PIDs on port 3000: ${pids}`);
+            Bun.spawnSync(["sh", "-c", `kill -9 ${pids} 2>/dev/null || true`]);
+          }
         }
+      } catch {
+        // ignore
       }
 
       // Cool down
